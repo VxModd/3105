@@ -1,205 +1,62 @@
 name: Build 3105 variants unsigned IPA
 
-
-
 on:
-
   workflow_dispatch:
-  
   push:
-  
     branches:
-    
       - main
-      
-
 
 permissions:
-
   contents: read
-  
-
 
 jobs:
-
   build-unsigned-ipa:
-  
     runs-on: macos-latest
-    
     timeout-minutes: 45
-    
     steps:
-    
       - name: Check out fork
-      
         uses: actions/checkout@v4
-        
-
 
       - name: Restore modified source archive
-      
         shell: bash
-        
         run: |
-        
           set -euo pipefail
-          
           test -f 3105-variants-1.2.0-source.zip
-          
           rm -rf /tmp/3105-variants-source
-          
           mkdir -p /tmp/3105-variants-source
-          
           /usr/bin/unzip -q 3105-variants-1.2.0-source.zip -d /tmp/3105-variants-source
-          
           test -d /tmp/3105-variants-source/3105-variants
-          
           find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
-          
           cp -a /tmp/3105-variants-source/3105-variants/. .
-          
           test -f ThreeOneOSFive.xcodeproj/project.pbxproj
-          
           test -f ThreeOneOSFive/helpers/PatchPackageCodec.swift
-          
-
 
       - name: Show Xcode version
-      
         run: xcodebuild -version
-        
-
 
       - name: Build IPA without signing
-      
         shell: bash
-        
         run: |
-        
           set -euo pipefail
-          
           rm -rf build dist
-          
           mkdir -p dist/Payload
-          
-          xcodebuild \
-          
-            -project ThreeOneOSFive.xcodeproj \
-            
-            -scheme 3105 \
-            
-            -configuration Release \
-            
-            -sdk iphoneos \
-            
-            -derivedDataPath build/DerivedData \
-            
-            CONFIGURATION_BUILD_DIR="$PWD/build/Release-iphoneos" \
-            
-            CODE_SIGNING_ALLOWED=NO \
-            
-            CODE_SIGNING_REQUIRED=NO \
-            
-            CODE_SIGN_IDENTITY="" \
-            
-            DEVELOPMENT_TEAM=""
-            
+          xcodebuild -project ThreeOneOSFive.xcodeproj -scheme 3105 -configuration Release -sdk iphoneos -derivedDataPath build/DerivedData CONFIGURATION_BUILD_DIR="$PWD/build/Release-iphoneos" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" DEVELOPMENT_TEAM=""
           test -d build/Release-iphoneos/3105.app
-          
           cp -R build/Release-iphoneos/3105.app dist/Payload/3105.app
-          
           (
-          
             cd dist
-            
             /usr/bin/zip -qry 3105-variants-unsigned.ipa Payload
-            
             /usr/bin/shasum -a 256 3105-variants-unsigned.ipa > SHA256SUMS.txt
-            
           )
-          
           rm -rf dist/Payload
-          
           cat dist/SHA256SUMS.txt
-          
-
 
       - name: Upload unsigned IPA artifact
-      
         uses: actions/upload-artifact@v4
-        
         with:
-        
           name: 3105-variants-unsigned-ipa
-          
           path: |
-          
             dist/3105-variants-unsigned.ipa
-            
             dist/SHA256SUMS.txt
-            
           if-no-files-found: error
-          
           retention-days: 14
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
