@@ -41,8 +41,8 @@ jobs:
           rm -rf build dist
           mkdir -p dist/Payload
           xcodebuild -project ThreeOneOSFive.xcodeproj -scheme 3105 -configuration Release -sdk iphoneos -derivedDataPath build/DerivedData CONFIGURATION_BUILD_DIR="$PWD/build/Release-iphoneos" CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" DEVELOPMENT_TEAM=""
-          test -d build/Release-iphoneos/3105.app
-          cp -R build/Release-iphoneos/3105.app dist/Payload/3105.app
+          test -d build/Release-iphoneos/Zscript.app
+          cp -R build/Release-iphoneos/Zscript.app dist/Payload/Zscript.app
           (
             cd dist
             /usr/bin/zip -qry 3105-variants-unsigned.ipa Payload
