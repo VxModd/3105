@@ -409,7 +409,12 @@ private enum BundledExploitCatalog {
             throw PatchPackageError.invalidProject
         }
         let data = try Data(contentsOf: url, options: .mappedIfSafe)
-        return try PatchPackageCodec.decode(data, password: nil).variants
+        let decoded = try PatchPackageCodec.decode(data, password: nil)
+        if !decoded.variants.isEmpty {
+            return decoded.variants
+        }
+        // Fallback for v1/v2 packages that might be bundled
+        return [decoded.project]
     }
 }
 
@@ -503,7 +508,7 @@ private struct ExploitsView: View {
                     .font(.system(size: 9, weight: .bold, design: .rounded))
                     .tracking(0.7)
                     .foregroundStyle(AppTheme.accent)
-                Text("1.8.0")
+                Text(AppInfo.marketingVersion)
                     .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
             }
