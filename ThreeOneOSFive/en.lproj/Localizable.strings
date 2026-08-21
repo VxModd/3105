@@ -551,3 +551,12 @@
 "exploits.info_footer" = "Device and session details";
 "exploits.patch_asset" = "Bundled patch asset";
 "exploits.variant_label" = "Variant";
+
+"exploits.control_surface" = "CONTROL SURFACE";
+"exploits.primary_module" = "PRIMARY MODULE";
+"exploits.select_variant" = "Choose the active loadout";
+"exploits.no_variant" = "Unavailable";
+"exploits.target_locked" = "Target locked";
+"exploits.device_node" = "Device node";
+"exploits.runtime" = "Runtime";
+"exploits.secure" = "Secure channel";

@@ -551,3 +551,12 @@
 "exploits.info_footer" = "设备与会话详情";
 "exploits.patch_asset" = "内置补丁资源";
 "exploits.variant_label" = "变体";
+
+"exploits.control_surface" = "控制面板";
+"exploits.primary_module" = "主要模块";
+"exploits.select_variant" = "选择当前配置";
+"exploits.no_variant" = "不可用";
+"exploits.target_locked" = "目标已锁定";
+"exploits.device_node" = "设备节点";
+"exploits.runtime" = "系统";
+"exploits.secure" = "安全通道";

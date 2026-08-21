@@ -551,3 +551,12 @@
 "exploits.info_footer" = "Thông tin thiết bị và phiên";
 "exploits.patch_asset" = "Tài nguyên bản vá tích hợp";
 "exploits.variant_label" = "Biến thể";
+
+"exploits.control_surface" = "BẢNG ĐIỀU KHIỂN";
+"exploits.primary_module" = "MÔ-ĐUN CHÍNH";
+"exploits.select_variant" = "Chọn loadout đang hoạt động";
+"exploits.no_variant" = "Không khả dụng";
+"exploits.target_locked" = "Đã khóa mục tiêu";
+"exploits.device_node" = "Thiết bị";
+"exploits.runtime" = "Hệ thống";
+"exploits.secure" = "Kênh bảo mật";

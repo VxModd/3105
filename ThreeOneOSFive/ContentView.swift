@@ -454,372 +454,454 @@ private struct ExploitsView: View {
     @State private var isWorking = false
     @State private var hasReceipt = false
 
+    private let definition = BundledExploitCatalog.cacheRes
+    private let electricBlue = Color(red: 0.26, green: 0.70, blue: 1.00)
+    private let violet = Color(red: 0.53, green: 0.34, blue: 1.00)
+    private let panel = Color(red: 0.075, green: 0.08, blue: 0.11)
+
     private var selectedProject: PatchProject? {
         variants.first { $0.id == selectedVariantID }
     }
 
-    private let definition = BundledExploitCatalog.cacheRes
-
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 14) {
-                    hero
-                    overviewStrip
-                    infoCard
-                    exploitCard
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 10)
-                .padding(.bottom, 28)
-            }
-            .background(AppTheme.pageBackground)
-            .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text(language.text("tab.exploits"))
-                        .font(.headline.weight(.semibold))
+            ZStack {
+                Color.black.ignoresSafeArea()
+                ambientBackground
+
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 20) {
+                        topBar
+                        identityHeader
+                        primaryModule
+                        telemetry
+                        nodePanel
+                    }
+                    .padding(.horizontal, 18)
+                    .padding(.top, 10)
+                    .padding(.bottom, 34)
                 }
             }
+            .navigationBarHidden(true)
             .sheet(isPresented: $showSettings) { SettingsView() }
             .sheet(isPresented: $showLogs) { LogView() }
             .task {
                 loadBundledProject()
             }
         }
+        .preferredColorScheme(.dark)
     }
 
-    private var hero: some View {
-        HStack(spacing: 14) {
-            AppLogo(size: 54)
-                .shadow(color: AppTheme.accent.opacity(0.28), radius: 14, y: 6)
-            VStack(alignment: .leading, spacing: 3) {
-                Text("Zscript")
-                    .font(.title2.weight(.bold))
-                Text(language.text("exploits.brandline"))
-                    .font(.caption.weight(.semibold))
-                    .tracking(1.1)
-                    .foregroundStyle(AppTheme.accent)
-            }
-            Spacer(minLength: 12)
-            VStack(alignment: .trailing, spacing: 3) {
-                Text(language.text("exploits.available"))
-                    .font(.system(size: 9, weight: .bold, design: .rounded))
-                    .tracking(0.7)
-                    .foregroundStyle(AppTheme.accent)
-                Text(AppInfo.marketingVersion)
-                    .font(.caption.monospaced())
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding(16)
-        .background(
-            LinearGradient(
-                colors: [
-                    AppTheme.accent.opacity(0.22),
-                    AppTheme.consoleBackground,
-                    AppTheme.consoleBackground
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            ),
-            in: RoundedRectangle(cornerRadius: 22, style: .continuous)
-        )
-        .overlay {
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .stroke(AppTheme.accent.opacity(0.20), lineWidth: 1)
-        }
-        .shadow(color: AppTheme.accent.opacity(0.10), radius: 18, y: 8)
-    }
-
-    private var overviewStrip: some View {
-        HStack(spacing: 10) {
-            metricTile(
-                title: language.text("exploits.active_target"),
-                value: "Free Fire",
-                systemImage: "scope"
+    private var ambientBackground: some View {
+        VStack {
+            RadialGradient(
+                colors: [violet.opacity(0.18), .clear],
+                center: .topTrailing,
+                startRadius: 10,
+                endRadius: 330
             )
-            metricTile(
-                title: language.text("exploits.status_label"),
-                value: language.text(status.textKey),
-                systemImage: status == .success ? "checkmark.circle.fill" : "bolt.fill",
-                tint: status.color
-            )
+            .frame(height: 420)
+            Spacer()
         }
+        .ignoresSafeArea()
+        .allowsHitTesting(false)
     }
 
-    private var infoCard: some View {
-        DisclosureGroup(isExpanded: $showInfo) {
-            VStack(alignment: .leading, spacing: 10) {
-                Divider()
-                infoRow(
-                    title: language.text("dashboard.hardware_model"),
-                    value: AppInfo.displayMachineName,
-                    systemImage: "iphone"
-                )
-                infoRow(
-                    title: language.text("settings.ios_version"),
-                    value: "\(AppInfo.osVersion) (\(AppInfo.osBuild))",
-                    systemImage: "gearshape.2"
-                )
-                infoRow(
-                    title: language.text("exploits.target"),
-                    value: language.text("exploits.cache_res_target"),
-                    systemImage: "scope"
-                )
-                HStack(spacing: 10) {
-                    quickAction(
-                        title: language.text("exploits.logs"),
-                        systemImage: "apple.terminal"
-                    ) {
-                        showLogs = true
-                    }
-                    quickAction(
-                        title: language.text("exploits.settings"),
-                        systemImage: "gearshape"
-                    ) {
-                        showSettings = true
-                    }
-                }
-            }
-            .padding(.top, 8)
-        } label: {
+    private var topBar: some View {
+        HStack {
             HStack(spacing: 10) {
-                Image(systemName: "info.circle.fill")
-                    .foregroundStyle(AppTheme.accent)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(language.text("exploits.info"))
-                        .font(.subheadline.weight(.semibold))
-                    Text(language.text("exploits.info_footer"))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                AppLogo(size: 38)
+                    .shadow(color: electricBlue.opacity(0.34), radius: 12, y: 4)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Zscript")
+                        .font(.headline.weight(.bold))
+                    Text(language.text("exploits.control_surface"))
+                        .font(.system(size: 9, weight: .bold, design: .rounded))
+                        .tracking(1.1)
+                        .foregroundStyle(electricBlue)
                 }
             }
-        }
-        .tint(AppTheme.accent)
-        .padding(14)
-        .background(
-            AppTheme.consoleBackground,
-            in: RoundedRectangle(cornerRadius: 20, style: .continuous)
-        )
-        .overlay {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(Color.white.opacity(0.06), lineWidth: 1)
-        }
-    }
 
-    private var exploitCard: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .top, spacing: 12) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 15, style: .continuous)
-                        .fill(AppTheme.accent.opacity(0.16))
-                    Image(systemName: definition.systemImage)
-                        .font(.system(size: 21, weight: .bold))
-                        .foregroundStyle(AppTheme.accent)
-                }
-                .frame(width: 48, height: 48)
-
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(language.text(definition.titleKey))
-                        .font(.title3.weight(.bold))
-                    
-                    if variants.count > 1 {
-                        Menu {
-                            ForEach(variants) { variant in
-                                Button {
-                                    selectedVariantID = variant.id
-                                    hasReceipt = DevicePatchService.latestReceipt(projectID: variant.id) != nil
-                                } label: {
-                                    HStack {
-                                        Text(variant.name)
-                                        if selectedVariantID == variant.id {
-                                            Image(systemName: "checkmark")
-                                        }
-                                    }
-                                }
-                            }
-                        } label: {
-                            HStack(spacing: 4) {
-                                Text(selectedProject?.name ?? "...")
-                                    .font(.subheadline.weight(.medium))
-                                Image(systemName: "chevron.down")
-                                    .font(.system(size: 10, weight: .bold))
-                            }
-                            .foregroundStyle(AppTheme.accent)
-                            .padding(.vertical, 2)
-                        }
-                    }
-                }
-                Spacer(minLength: 8)
-                statusBadge
-            }
+            Spacer()
 
             HStack(spacing: 8) {
-                Image(systemName: "scope")
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(AppTheme.accent)
-                Text(language.text(definition.targetKey))
-                    .font(.caption.monospaced())
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                Spacer(minLength: 4)
-                Image(systemName: "checkmark.shield.fill")
-                    .font(.caption)
-                    .foregroundStyle(.green)
+                Circle()
+                    .fill(Color.green)
+                    .frame(width: 7, height: 7)
+                Text(language.text("exploits.available"))
+                    .font(.system(size: 9, weight: .bold, design: .rounded))
+                    .tracking(0.8)
             }
+            .foregroundStyle(.secondary)
             .padding(.horizontal, 11)
-            .frame(height: 34)
-            .background(Color.white.opacity(0.05), in: Capsule())
+            .frame(height: 30)
+            .background(Color.white.opacity(0.06), in: Capsule())
+            .overlay { Capsule().stroke(Color.white.opacity(0.09), lineWidth: 1) }
 
-            VStack(spacing: 9) {
+            Text("v\(AppInfo.marketingVersion)")
+                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                .foregroundStyle(.secondary)
+
+            Button { showSettings = true } label: {
+                Image(systemName: "slider.horizontal.3")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.primary)
+                    .frame(width: 34, height: 34)
+                    .background(Color.white.opacity(0.07), in: Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(language.text("accessibility.open_settings"))
+        }
+    }
+
+    private var identityHeader: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(language.text("exploits.header").uppercased())
+                .font(.system(size: 31, weight: .black, design: .rounded))
+                .tracking(-0.8)
+            HStack(spacing: 8) {
+                Text(language.text("exploits.active_target").uppercased())
+                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .tracking(1.1)
+                    .foregroundStyle(.secondary)
+                Text("/  FREE FIRE")
+                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .tracking(0.7)
+                    .foregroundStyle(electricBlue)
+            }
+        }
+    }
+
+    private var primaryModule: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 7) {
+                        Image(systemName: "waveform.path.ecg")
+                            .font(.system(size: 11, weight: .bold))
+                        Text(language.text("exploits.primary_module"))
+                            .font(.system(size: 10, weight: .bold, design: .rounded))
+                            .tracking(1.2)
+                    }
+                    .foregroundStyle(Color.white.opacity(0.66))
+
+                    Text(language.text(definition.titleKey))
+                        .font(.system(size: 30, weight: .black, design: .rounded))
+                        .tracking(-0.8)
+
+                    HStack(spacing: 8) {
+                        Image(systemName: "scope")
+                            .font(.caption.weight(.bold))
+                        Text(language.text(definition.targetKey))
+                            .font(.caption.monospaced())
+                            .lineLimit(1)
+                    }
+                    .foregroundStyle(Color.white.opacity(0.70))
+                }
+
+                Spacer(minLength: 12)
+
+                ZStack {
+                    Circle()
+                        .fill(electricBlue.opacity(0.14))
+                    Circle()
+                        .stroke(electricBlue.opacity(0.38), lineWidth: 1)
+                    Image(systemName: definition.systemImage)
+                        .font(.system(size: 27, weight: .bold))
+                        .foregroundStyle(electricBlue)
+                }
+                .frame(width: 64, height: 64)
+            }
+
+            Rectangle()
+                .fill(Color.white.opacity(0.10))
+                .frame(height: 1)
+                .padding(.vertical, 20)
+
+            HStack(spacing: 10) {
+                Image(systemName: "rectangle.and.hand.point.up.left.fill")
+                    .foregroundStyle(violet)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(language.text("exploits.variant_label").uppercased())
+                        .font(.system(size: 9, weight: .bold, design: .rounded))
+                        .tracking(0.9)
+                        .foregroundStyle(.secondary)
+                    Text(language.text("exploits.select_variant"))
+                        .font(.caption)
+                        .foregroundStyle(Color.white.opacity(0.58))
+                }
+                Spacer(minLength: 10)
+                variantMenu
+            }
+            .padding(.horizontal, 12)
+            .frame(minHeight: 58)
+            .background(Color.white.opacity(0.055), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Color.white.opacity(0.08), lineWidth: 1)
+            }
+            .padding(.bottom, 14)
+
+            HStack(spacing: 10) {
                 Button(action: inject) {
-                    HStack(spacing: 10) {
+                    HStack(spacing: 9) {
                         if isWorking {
-                            ProgressView()
-                                .tint(.white)
+                            ProgressView().tint(.black)
+                        } else {
+                            Image(systemName: "bolt.fill")
                         }
                         Text(language.text("exploits.inject"))
-                            .font(.headline.weight(.semibold))
+                            .font(.headline.weight(.bold))
                         Spacer()
-                        Image(systemName: "bolt.fill")
-                            .font(.body.weight(.bold))
+                        Image(systemName: "arrow.up.right")
+                            .font(.caption.weight(.black))
                     }
+                    .foregroundStyle(.black)
                     .padding(.horizontal, 16)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 48)
+                    .frame(height: 54)
                 }
                 .buttonStyle(.plain)
-                .foregroundStyle(.white)
                 .background(
                     LinearGradient(
-                        colors: [AppTheme.accent, AppTheme.accent.opacity(0.72)],
+                        colors: [Color.white, electricBlue.opacity(0.78)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
-                    in: RoundedRectangle(cornerRadius: 15, style: .continuous)
+                    in: RoundedRectangle(cornerRadius: 17, style: .continuous)
                 )
-                .shadow(color: AppTheme.accent.opacity(0.22), radius: 10, y: 5)
+                .shadow(color: electricBlue.opacity(0.25), radius: 16, y: 7)
                 .disabled(isWorking || selectedProject == nil)
-                .opacity(isWorking || selectedProject == nil ? 0.55 : 1)
+                .opacity(isWorking || selectedProject == nil ? 0.52 : 1)
 
                 if hasReceipt {
                     Button(action: restore) {
-                        HStack(spacing: 10) {
-                            Image(systemName: "arrow.uturn.backward.circle")
-                            Text(language.text("exploits.restore"))
-                                .font(.subheadline.weight(.semibold))
-                            Spacer()
-                        }
-                        .padding(.horizontal, 16)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 42)
+                        Image(systemName: "arrow.uturn.backward")
+                            .font(.headline.weight(.bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 54, height: 54)
                     }
                     .buttonStyle(.plain)
-                    .foregroundStyle(AppTheme.accent)
-                    .background(
-                        AppTheme.accent.opacity(0.10),
-                        in: RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    )
+                    .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 17, style: .continuous))
                     .overlay {
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(AppTheme.accent.opacity(0.25), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: 17, style: .continuous)
+                            .stroke(Color.white.opacity(0.12), lineWidth: 1)
                     }
                     .disabled(isWorking)
+                    .accessibilityLabel(language.text("exploits.restore"))
                 }
             }
         }
-        .padding(17)
+        .padding(18)
         .background(
-            AppTheme.consoleBackground,
-            in: RoundedRectangle(cornerRadius: 24, style: .continuous)
+            LinearGradient(
+                colors: [Color(red: 0.13, green: 0.15, blue: 0.22), panel, Color.black.opacity(0.88)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            in: RoundedRectangle(cornerRadius: 28, style: .continuous)
         )
         .overlay {
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .stroke(
                     LinearGradient(
-                        colors: [AppTheme.accent.opacity(0.34), Color.white.opacity(0.05)],
+                        colors: [electricBlue.opacity(0.60), violet.opacity(0.28), Color.white.opacity(0.07)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
                     lineWidth: 1
                 )
         }
-        .shadow(color: .black.opacity(0.24), radius: 18, y: 9)
-    }
-
-    private var statusBadge: some View {
-        HStack(spacing: 5) {
-            Circle()
-                .fill(status.color)
-                .frame(width: 6, height: 6)
-            Text(language.text(status.textKey))
-                .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                .foregroundStyle(status.color)
+        .overlay(alignment: .topTrailing) {
+            statusBadge
+                .padding(17)
         }
-        .padding(.horizontal, 8)
-        .frame(height: 25)
-        .background(status.color.opacity(0.10), in: Capsule())
+        .shadow(color: violet.opacity(0.14), radius: 28, y: 14)
     }
 
-    private func metricTile(
-        title: String,
-        value: String,
-        systemImage: String,
-        tint: Color = AppTheme.accent
-    ) -> some View {
-        HStack(spacing: 9) {
+    private var variantMenu: some View {
+        Menu {
+            ForEach(variants) { variant in
+                Button {
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        selectedVariantID = variant.id
+                        hasReceipt = DevicePatchService.latestReceipt(projectID: variant.id) != nil
+                        status = .ready
+                    }
+                } label: {
+                    HStack {
+                        Text(variant.name)
+                        if selectedVariantID == variant.id {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 8) {
+                Text(selectedProject?.name ?? language.text("exploits.no_variant"))
+                    .font(.subheadline.weight(.bold))
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 10, weight: .black))
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 12)
+            .frame(height: 36)
+            .background(violet.opacity(0.28), in: Capsule())
+            .overlay { Capsule().stroke(violet.opacity(0.65), lineWidth: 1) }
+        }
+        .disabled(variants.isEmpty)
+    }
+
+    private var telemetry: some View {
+        HStack(spacing: 10) {
+            telemetryCell(
+                label: language.text("exploits.status_label"),
+                value: language.text(status.textKey),
+                systemImage: status == .success ? "checkmark" : "bolt.fill",
+                tint: status.color
+            )
+            telemetryCell(
+                label: language.text("exploits.target_locked"),
+                value: "LOCKED",
+                systemImage: "lock.fill",
+                tint: electricBlue
+            )
+        }
+    }
+
+    private func telemetryCell(label: String, value: String, systemImage: String, tint: Color) -> some View {
+        HStack(spacing: 10) {
             Image(systemName: systemImage)
                 .font(.caption.weight(.bold))
                 .foregroundStyle(tint)
-                .frame(width: 22, height: 22)
-                .background(tint.opacity(0.12), in: Circle())
-            VStack(alignment: .leading, spacing: 1) {
-                Text(title.uppercased())
+                .frame(width: 27, height: 27)
+                .background(tint.opacity(0.13), in: Circle())
+            VStack(alignment: .leading, spacing: 2) {
+                Text(label.uppercased())
                     .font(.system(size: 8, weight: .bold, design: .rounded))
-                    .tracking(0.5)
+                    .tracking(0.7)
                     .foregroundStyle(.secondary)
                 Text(value)
-                    .font(.caption.weight(.semibold))
+                    .font(.caption.weight(.bold))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
             }
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 11)
-        .frame(maxWidth: .infinity, minHeight: 48)
-        .background(AppTheme.consoleBackground, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+        .padding(.horizontal, 12)
+        .frame(maxWidth: .infinity, minHeight: 58)
+        .background(panel, in: RoundedRectangle(cornerRadius: 17, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 15, style: .continuous)
-                .stroke(Color.white.opacity(0.05), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 17, style: .continuous)
+                .stroke(Color.white.opacity(0.08), lineWidth: 1)
         }
     }
 
-    private func infoRow(title: String, value: String, systemImage: String) -> some View {
-        HStack(spacing: 12) {
+    private var nodePanel: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    showInfo.toggle()
+                }
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(language.text("exploits.info").uppercased())
+                            .font(.system(size: 10, weight: .bold, design: .rounded))
+                            .tracking(1.1)
+                            .foregroundStyle(electricBlue)
+                        Text(language.text("exploits.info_footer"))
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.primary)
+                    }
+                    Spacer()
+                    Image(systemName: showInfo ? "minus" : "plus")
+                        .font(.caption.weight(.black))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 30, height: 30)
+                        .background(Color.white.opacity(0.07), in: Circle())
+                }
+            }
+            .buttonStyle(.plain)
+
+            if showInfo {
+                VStack(alignment: .leading, spacing: 13) {
+                    Rectangle()
+                        .fill(Color.white.opacity(0.09))
+                        .frame(height: 1)
+                        .padding(.vertical, 14)
+                    nodeRow(label: language.text("exploits.device_node"), value: AppInfo.displayMachineName, systemImage: "iphone")
+                    nodeRow(label: language.text("exploits.runtime"), value: "iOS \(AppInfo.osVersion)", systemImage: "cpu")
+                    nodeRow(label: language.text("exploits.secure"), value: language.text("exploits.target_locked"), systemImage: "checkmark.shield.fill", tint: .green)
+
+                    HStack(spacing: 10) {
+                        nodeAction(title: language.text("exploits.logs"), systemImage: "terminal.fill") {
+                            showLogs = true
+                        }
+                        nodeAction(title: language.text("exploits.settings"), systemImage: "gearshape.fill") {
+                            showSettings = true
+                        }
+                    }
+                    .padding(.top, 5)
+                }
+            }
+        }
+        .padding(17)
+        .background(panel, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(Color.white.opacity(0.08), lineWidth: 1)
+        }
+    }
+
+    private func nodeRow(title: String, value: String, systemImage: String, tint: Color? = nil) -> some View {
+        HStack(spacing: 11) {
             Image(systemName: systemImage)
-                .foregroundStyle(AppTheme.accent)
-                .frame(width: 22)
-            Text(title)
-                .font(.subheadline)
-            Spacer(minLength: 12)
+                .font(.caption.weight(.bold))
+                .foregroundStyle(tint ?? electricBlue)
+                .frame(width: 24)
+            Text(title.uppercased())
+                .font(.system(size: 9, weight: .bold, design: .rounded))
+                .tracking(0.7)
+                .foregroundStyle(.secondary)
+            Spacer(minLength: 8)
             Text(value)
                 .font(.caption.monospaced())
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.trailing)
+                .foregroundStyle(.primary)
+                .lineLimit(1)
         }
     }
 
-    private func quickAction(title: String, systemImage: String, action: @escaping () -> Void) -> some View {
+    private func nodeAction(title: String, systemImage: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Label(title, systemImage: systemImage)
-                .font(.caption.weight(.semibold))
+                .font(.caption.weight(.bold))
                 .frame(maxWidth: .infinity)
-                .frame(height: 38)
+                .frame(height: 40)
         }
-        .buttonStyle(.bordered)
-        .tint(AppTheme.accent)
+        .buttonStyle(.plain)
+        .foregroundStyle(.white)
+        .background(Color.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 13, style: .continuous)
+                .stroke(Color.white.opacity(0.10), lineWidth: 1)
+        }
+    }
+
+    private var statusBadge: some View {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(status.color)
+                .frame(width: 6, height: 6)
+            Text(language.text(status.textKey))
+                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                .foregroundStyle(status.color)
+        }
+        .padding(.horizontal, 10)
+        .frame(height: 27)
+        .background(status.color.opacity(0.12), in: Capsule())
+        .overlay { Capsule().stroke(status.color.opacity(0.26), lineWidth: 1) }
     }
 
     private func loadBundledProject() {
@@ -880,3 +962,4 @@ private struct ExploitsView: View {
         }
     }
 }
+
