@@ -560,3 +560,9 @@
 "exploits.device_node" = "Thiết bị";
 "exploits.runtime" = "Hệ thống";
 "exploits.secure" = "Kênh bảo mật";
+
+"exploits.version_tag" = "PHIÊN BẢN";
+"exploits.ready_to_deploy" = "SẴN SÀNG KÍCH HOẠT";
+"exploits.live_target" = "MỤC TIÊU ĐANG HOẠT ĐỘNG";
+"exploits.active_loadout" = "CẤU HÌNH ĐANG DÙNG";
+"exploits.profile" = "HỒ SƠ HỆ THỐNG";

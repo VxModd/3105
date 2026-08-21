@@ -560,3 +560,9 @@
 "exploits.device_node" = "设备节点";
 "exploits.runtime" = "系统";
 "exploits.secure" = "安全通道";
+
+"exploits.version_tag" = "版本";
+"exploits.ready_to_deploy" = "准备部署";
+"exploits.live_target" = "当前目标";
+"exploits.active_loadout" = "当前配置";
+"exploits.profile" = "系统配置";

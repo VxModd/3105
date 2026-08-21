@@ -560,3 +560,9 @@
 "exploits.device_node" = "Device node";
 "exploits.runtime" = "Runtime";
 "exploits.secure" = "Secure channel";
+
+"exploits.version_tag" = "VERSION";
+"exploits.ready_to_deploy" = "READY TO DEPLOY";
+"exploits.live_target" = "LIVE TARGET";
+"exploits.active_loadout" = "ACTIVE LOADOUT";
+"exploits.profile" = "SYSTEM PROFILE";
