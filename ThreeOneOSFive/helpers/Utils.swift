@@ -99,6 +99,9 @@ enum AppInfo {
         let sel = NSSelectorFromString("_hasHomeButton")
         return UIDevice.responds(to: sel) && (UIDevice.perform(sel)?.takeUnretainedValue() as? Bool ?? false)
     }
+    static var marketingVersion: String {
+        AppUpdateChecker.currentVersion
+    }
 }
 
 // MARK: - Exploit status
