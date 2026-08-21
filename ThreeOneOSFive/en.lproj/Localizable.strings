@@ -1,4 +1,4 @@
-"app.subtitle" = "MobileGestalt editor";
+"app.subtitle" = "Zscript patch manager";
 "app.capability_editor" = "MobileGestalt capability editor";
 "common.close" = "Close";
 "common.done" = "Done";
@@ -14,12 +14,12 @@
 "common.finish" = "Finish";
 
 "update.title" = "Update available";
-"update.message" = "3105 %@ is available on GitHub.";
+"update.message" = "Zscript %@ is available on GitHub.";
 "update.agree" = "OK";
 "update.dismiss" = "Don't show again";
 "patch.error.wrong_password" = "Incorrect password.";
 
-"attribution.title" = "About 3105";
+"attribution.title" = "About Zscript";
 "attribution.subtitle" = "Project information";
 "attribution.link_section" = "Project link";
 "attribution.url" = "URL";
@@ -30,9 +30,9 @@
 "onboarding.language_title" = "Choose your language";
 "onboarding.language_subtitle" = "You can change this later in Settings.";
 "onboarding.language_hint" = "Select a language to continue.";
-"onboarding.welcome_title" = "Welcome to 3105";
-"onboarding.welcome_message" = "Developed by YangJiii";
-"onboarding.welcome_badge" = "Official 3105 identity";
+"onboarding.welcome_title" = "Welcome to Zscript";
+"onboarding.welcome_message" = "Zscript patch manager and MobileGestalt editor";
+"onboarding.welcome_badge" = "Official Zscript identity";
 "onboarding.versions_title" = "Supported iOS versions";
 "onboarding.versions_subtitle" = "3105 is verified on the ranges below. Unsupported builds are blocked.";
 "onboarding.versions_footer" = "This device: iOS %@ (%@)";
@@ -70,9 +70,7 @@
 "dashboard.kernel_running" = "Activating…";
 "dashboard.kernel_active" = "Active";
 "dashboard.kernel_inactive" = "Inactive";
-"dashboard.enterprise_signing" = "3105 only works when signed with an enterprise certificate. SideStore, AltStore, 3uTools and LiveContainer are not supported.";
-"dashboard.features" = "Features";
-"dashboard.features_footer" = "Turn on Cleaner or Wallpapers to show it in the app navigation.";
+"dashboard.enterprise_signing" = "Zscript only works when signed with an enterprise certificate. SideStore, AltStore, 3uTools and LiveContainer are not supported.";
 "tab.home" = "Home";
 "tab.files" = "Files";
 "tab.patches" = "Patches";
@@ -163,11 +161,18 @@
 "patch.preparing_from_browser" = "Preparing patch paths…";
 "patch.create_from_browser_failed" = "Couldn't Create Patch";
 "patch.password" = "Password";
+"patch.change_password" = "Change Password";
+"patch.set_password" = "Set Password";
+"patch.new_password" = "New password";
+"patch.confirm_password" = "Confirm password";
+"patch.password_mismatch" = "Passwords do not match.";
+"patch.password_recovery_warning" = "If you forget this password, the package cannot be recovered.";
+"patch.unlocked" = "Unlocked";
 "patch.password_optional" = "Optional password";
-"patch.password_locked" = "Set permanently";
+"patch.password_locked" = "Password protected";
 "patch.no_password" = "No password";
-"patch.password_immutable_footer" = "Optional. It cannot be changed after the project is created.";
-"patch.password_existing_footer" = "This setting cannot be changed after creation.";
+"patch.password_immutable_footer" = "Optional. You can change it later from the package details.";
+"patch.password_existing_footer" = "Use Change Password in the package details to rotate this password.";
 "patch.password_once_message" = "After a successful unlock, this device remembers the content key—not the password.";
 "patch.unlock" = "Unlock";
 "patch.apply" = "Apply Patch";
@@ -177,9 +182,10 @@
 "patch.apply_confirm_message" = "All bundle identifiers and relative paths will be validated again. Originals are backed up before the first write.";
 "patch.restore_confirm_title" = "Restore original files?";
 "patch.created_message" = "The patch project was created.";
+"patch.password_changed_message" = "The package password was changed and its encryption key was rotated.";
 "patch.updated_message" = "The patch project was updated without changing its password.";
 "patch.imported_message" = "The .3105 package was imported.";
-"patch.unlocked_message" = "Unlocked. This device will not ask for this package password again.";
+"patch.unlocked_message" = "Unlocked. This device remembers only the content key, not the password.";
 "patch.workspace_synced_message" = "The patch workspace was synchronized.";
 "patch.applied_message" = "All patch rules were applied and the originals were backed up.";
 "patch.restored_message" = "The original files were restored.";
@@ -205,7 +211,7 @@
 "accessibility.requesting_access" = "Requesting exploit access";
 "accessibility.open_editor_hint" = "Opens the MobileGestalt feature editor";
 "accessibility.run_exploit_hint" = "Requests write access required by the Gestalt editor";
-"accessibility.open_github" = "Open 3105 on GitHub";
+"accessibility.open_github" = "Open Zscript on GitHub";
 "accessibility.open_profile" = "Open %@ profile";
 "accessibility.log_entry" = "Log entry %lld: %@";
 
@@ -242,17 +248,10 @@
 "settings.sandbox_token" = "Sandbox Token";
 "settings.generate_token" = "Generate Token";
 "settings.token_footer" = "Available after exploit access succeeds.";
+"settings.social_media" = "Social Media";
+"social.arelos_role" = "TikTok profile";
+"social.zscript_role" = "Official TikTok profile";
 "settings.credits" = "Credits";
-"settings.social_media" = "Social media";
-"social.github_role" = "3105 source code";
-"social.iosvn_role" = "iOSVN Community";
-"credit.yangjiii" = "Developer & designer";
-"credit.forcequit" = "bad_query exploit";
-"credit.filzaslop" = "FilzaSlop — MHA-C2 and app discovery";
-"credit.pocket_poster" = "Pocket Poster, Nugget & .tendies format";
-"credit.sandbox_escape" = "FilzaSlop sandbox escape foundation";
-"credit.opa" = "Dopamine jailbreak, kexploit base";
-"credit.seo" = "kexploit_opa334 port";
 
 "gestalt.title" = "Gestalt Editor";
 "gestalt.apply_changes" = "Apply Changes";
@@ -511,3 +510,43 @@
 "wallpaper.error.install" = "Installation failed and any descriptors added during this attempt were rolled back.";
 "wallpaper.error.restore" = "3105 could not safely remove every descriptor from this installation.";
 "wallpaper.error.unknown" = "An unexpected error occurred. Review Session Logs for details.";
+
+"patch.variants" = "Variants";
+"patch.variant" = "Variant";
+"patch.variants_count" = "%lld selectable variants";
+"patch.variant_footer" = "Only the selected variant is applied. Other variants remain unchanged.";
+"patch.new_variants" = "New Variant Package";
+"patch.add_variant" = "Add Variant";
+"patch.variant_empty" = "Empty variant — tap to configure";
+"patch.variant_tap_to_edit" = "Tap to set its name and rules";
+"patch.variant_composer_footer" = "Create at least two variants. When applying, 3105 writes only the selected variant.";
+
+"patch.login_subtitle" = "Sign in to continue to Patches.";
+"patch.login_username" = "Username";
+"patch.login_password" = "Password";
+"patch.login_button" = "Continue";
+"patch.login_invalid" = "Incorrect credentials.";
+
+"tab.exploits" = "Exploits";
+"exploits.header" = "Exploits";
+"exploits.subtitle" = "Built-in tools for your installed targets.";
+"exploits.info" = "Info";
+"exploits.target" = "Target";
+"exploits.logs" = "Logs";
+"exploits.settings" = "Settings";
+"exploits.cache_res_title" = "AIM Assist";
+"exploits.cache_res_description" = "Replaces the Free Fire cache_res asset with the bundled replacement.";
+"exploits.cache_res_target" = "Free Fire · com.dts.freefireth";
+"exploits.inject" = "Inject";
+"exploits.restore" = "Restore";
+"exploits.status_ready" = "status: ready";
+"exploits.status_working" = "status: working";
+"exploits.status_success" = "status: success";
+"exploits.status_error" = "status: error";
+
+"exploits.brandline" = "EXPLOIT TOOLKIT";
+"exploits.available" = "AVAILABLE";
+"exploits.active_target" = "Active target";
+"exploits.status_label" = "Status";
+"exploits.info_footer" = "Device and session details";
+"exploits.patch_asset" = "Bundled patch asset";

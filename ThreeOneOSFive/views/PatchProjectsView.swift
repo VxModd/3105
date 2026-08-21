@@ -13,6 +13,7 @@ struct PatchProjectsView: View {
     @EnvironmentObject private var draftCoordinator: PatchDraftCoordinator
     @StateObject private var store = PatchProjectStore()
     @State private var showCreate = false
+    @State private var showVariantComposer = false
     @State private var showImporter = false
     @State private var searchText = ""
 
@@ -23,18 +24,20 @@ struct PatchProjectsView: View {
             if item.packageURL.lastPathComponent.localizedCaseInsensitiveContains(query) {
                 return true
             }
-            guard let project = item.project else { return false }
-            return project.name.localizedCaseInsensitiveContains(query)
-                || project.allBundleIdentifiers.contains {
-                    $0.localizedCaseInsensitiveContains(query)
-                }
-                || project.directories.contains {
-                    $0.relativePath.localizedCaseInsensitiveContains(query)
-                }
-                || project.rules.contains {
-                    $0.relativePath.localizedCaseInsensitiveContains(query)
-                        || $0.replacementFilename.localizedCaseInsensitiveContains(query)
-                }
+            guard !item.variants.isEmpty else { return false }
+            return item.variants.contains { project in
+                project.name.localizedCaseInsensitiveContains(query)
+                    || project.allBundleIdentifiers.contains {
+                        $0.localizedCaseInsensitiveContains(query)
+                    }
+                    || project.directories.contains {
+                        $0.relativePath.localizedCaseInsensitiveContains(query)
+                    }
+                    || project.rules.contains {
+                        $0.relativePath.localizedCaseInsensitiveContains(query)
+                            || $0.replacementFilename.localizedCaseInsensitiveContains(query)
+                    }
+            }
         }
     }
 
@@ -84,6 +87,11 @@ struct PatchProjectsView: View {
                             Label(language.text("patch.new"), systemImage: "doc.badge.plus")
                         }
                         Button {
+                            showVariantComposer = true
+                        } label: {
+                            Label(language.text("patch.new_variants"), systemImage: "square.stack.3d.up")
+                        }
+                        Button {
                             showImporter = true
                         } label: {
                             Label(language.text("patch.import"), systemImage: "square.and.arrow.down")
@@ -116,6 +124,11 @@ struct PatchProjectsView: View {
                 )
                 .ignoresSafeArea()
             }
+            .sheet(isPresented: $showVariantComposer) {
+                PatchVariantComposerView { variants, password in
+                    store.create(variants: variants, password: password)
+                }
+            }
             .sheet(isPresented: $showCreate) {
                 PatchProjectEditorView(
                     existingProject: nil,
@@ -136,6 +149,9 @@ struct PatchProjectsView: View {
             }
             .sheet(item: $store.passwordRequest, onDismiss: store.cancelUnlock) { _ in
                 PatchUnlockView(store: store)
+            }
+            .sheet(item: $store.passwordChangeRequest, onDismiss: store.cancelPasswordChange) { _ in
+                PatchPasswordChangeView(store: store)
             }
             .alert(item: $store.alert) { alert in
                 Alert(
@@ -222,10 +238,12 @@ private struct PatchProjectRow: View {
                     .foregroundStyle(.primary)
                 Text(item.isLocked
                      ? language.text("patch.tap_to_unlock")
-                     : language.text(
-                        item.summary.schemaVersion >= 2 ? "patch.workspace_items_count" : "patch.rules_count",
-                        Int64((item.project?.rules.count ?? 0) + (item.project?.directories.count ?? 0))
-                     ))
+                     : item.hasVariants
+                        ? language.text("patch.variants_count", Int64(item.variants.count))
+                        : language.text(
+                            item.summary.schemaVersion >= 2 ? "patch.workspace_items_count" : "patch.rules_count",
+                            Int64((item.project?.rules.count ?? 0) + (item.project?.directories.count ?? 0))
+                        ))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -287,6 +305,72 @@ private struct PatchUnlockView: View {
     }
 }
 
+private struct PatchPasswordChangeView: View {
+    @Environment(\.appLanguage) private var language
+    @Environment(\.dismiss) private var dismiss
+    @ObservedObject var store: PatchProjectStore
+    @State private var newPassword = ""
+    @State private var confirmation = ""
+    @State private var showMismatch = false
+
+    private var canSubmit: Bool {
+        !newPassword.isEmpty && newPassword == confirmation && !store.isBusy
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    SecureField(language.text("patch.new_password"), text: $newPassword)
+                        .textContentType(.newPassword)
+                        .onChange(of: newPassword) { _ in
+                            showMismatch = false
+                            store.clearPasswordChangeError()
+                        }
+                    SecureField(language.text("patch.confirm_password"), text: $confirmation)
+                        .textContentType(.newPassword)
+                        .onChange(of: confirmation) { _ in
+                            showMismatch = false
+                            store.clearPasswordChangeError()
+                        }
+                    if showMismatch {
+                        Text(language.text("patch.password_mismatch"))
+                            .font(.footnote)
+                            .foregroundStyle(.red)
+                    }
+                    if let errorKey = store.passwordChangeErrorKey {
+                        Text(language.text(errorKey))
+                            .font(.footnote)
+                            .foregroundStyle(.red)
+                    }
+                } footer: {
+                    Text(language.text("patch.password_recovery_warning"))
+                }
+            }
+            .navigationTitle(language.text("patch.change_password"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(language.text("common.cancel")) { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(language.text("common.done"), action: change)
+                        .disabled(!canSubmit)
+                }
+            }
+        }
+    }
+
+    private func change() {
+        guard !newPassword.isEmpty else { return }
+        guard newPassword == confirmation else {
+            showMismatch = true
+            return
+        }
+        store.changePassword(newPassword: newPassword)
+    }
+}
+
 private struct PatchProjectDetailView: View {
     @Environment(\.appLanguage) private var language
     @ObservedObject var store: PatchProjectStore
@@ -295,6 +379,7 @@ private struct PatchProjectDetailView: View {
     @State private var editingRule: PatchRule?
     @State private var showApplyConfirmation = false
     @State private var showRestoreConfirmation = false
+    @State private var selectedVariantIndex = 0
     @State private var isWorking = false
     @State private var actionAlert: PatchStoreAlert?
     @State private var shareRequest: PatchShareRequest?
@@ -303,8 +388,14 @@ private struct PatchProjectDetailView: View {
         store.items.first(where: { $0.id == projectID })
     }
 
+    private var selectedProject: PatchProject? {
+        guard let item, !item.variants.isEmpty else { return nil }
+        let index = min(selectedVariantIndex, item.variants.count - 1)
+        return item.variants[index]
+    }
+
     private var receipt: PatchTransactionReceipt? {
-        DevicePatchService.latestReceipt(projectID: projectID)
+        DevicePatchService.latestReceipt(projectID: selectedProject?.id ?? projectID)
     }
 
     private var isWorkspaceProject: Bool {
@@ -313,7 +404,21 @@ private struct PatchProjectDetailView: View {
 
     var body: some View {
         List {
-            if let item, let project = item.project {
+            if let item, let project = selectedProject {
+                if item.hasVariants {
+                    Section {
+                        Picker(language.text("patch.variant"), selection: $selectedVariantIndex) {
+                            ForEach(item.variants.indices, id: \.self) { index in
+                                Text(item.variants[index].name).tag(index)
+                            }
+                        }
+                    } header: {
+                        Text(language.text("patch.variants"))
+                    } footer: {
+                        Text(language.text("patch.variant_footer"))
+                    }
+                }
+
                 if isWorkspaceProject {
                     Section {
                         ForEach(project.allBundleIdentifiers, id: \.self) { bundleID in
@@ -331,7 +436,7 @@ private struct PatchProjectDetailView: View {
                         LabeledContent(language.text("patch.folders")) {
                             Text("\(project.directories.count)")
                         }
-                        if let workspaceURL = item.workspaceURL {
+                        if let workspaceURL = PatchWorkspaceService.workspaceURL(projectID: project.id) {
                             NavigationLink {
                                 FileBrowserView(
                                     containerPath: workspaceURL.path,
@@ -380,10 +485,30 @@ private struct PatchProjectDetailView: View {
                         Image(systemName: item.summary.isPasswordProtected ? "lock.fill" : "lock.open")
                             .foregroundStyle(AppTheme.accent)
                             .frame(width: 24)
-                        Text(language.text(item.summary.isPasswordProtected
-                            ? "patch.password_locked"
-                            : "patch.no_password"))
-                            .font(.subheadline)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(language.text(item.summary.isPasswordProtected
+                                ? "patch.password_locked"
+                                : "patch.no_password"))
+                                .font(.subheadline)
+                            if item.summary.isPasswordProtected {
+                                Text(language.text("patch.unlocked"))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    if item.contentKey != nil {
+                        Button {
+                            store.requestPasswordChange(for: item)
+                        } label: {
+                            Label(
+                                language.text(item.summary.isPasswordProtected
+                                    ? "patch.change_password"
+                                    : "patch.set_password"),
+                                systemImage: "key.fill"
+                            )
+                        }
+                        .disabled(isWorking || store.isBusy)
                     }
                 }
 
@@ -414,7 +539,7 @@ private struct PatchProjectDetailView: View {
             }
         }
         .listStyle(.insetGrouped)
-        .navigationTitle(item?.project?.name ?? language.text("patch.title"))
+        .navigationTitle(selectedProject?.name ?? language.text("patch.title"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -427,12 +552,12 @@ private struct PatchProjectDetailView: View {
             }
         }
         .sheet(isPresented: $showEditor) {
-            if let item, let project = item.project {
+            if let item, let project = selectedProject {
                 PatchProjectEditorView(
                     existingProject: project,
                     passwordIsProtected: item.summary.isPasswordProtected
                 ) { updatedProject, _ in
-                    store.update(project: updatedProject)
+                    store.update(project: updatedProject, packageID: projectID)
                 }
             }
         }
@@ -494,7 +619,7 @@ private struct PatchProjectDetailView: View {
     }
 
     private func updateRule(_ updatedRule: PatchRule) {
-        guard var project = item?.project,
+        guard var project = selectedProject,
               let index = project.rules.firstIndex(where: { $0.id == updatedRule.id }) else {
             return
         }
@@ -502,7 +627,7 @@ private struct PatchProjectDetailView: View {
         project.updatedAt = Date()
         do {
             try PatchPackageCodec.validate(project)
-            store.update(project: project)
+            store.update(project: project, packageID: projectID)
         } catch let error as PatchPackageError {
             actionAlert = PatchStoreAlert(
                 titleKey: "common.failed",
@@ -518,12 +643,12 @@ private struct PatchProjectDetailView: View {
     }
 
     private func apply() {
-        guard let item, let baseProject = item.project else { return }
+        guard let item, let baseProject = selectedProject else { return }
         isWorking = true
         Task.detached(priority: .userInitiated) {
             do {
                 let project = item.summary.schemaVersion >= 2
-                    ? try PatchProjectLibrary.synchronizeWorkspace(item: item)
+                    ? try PatchProjectLibrary.synchronizeWorkspace(item: item, variantID: baseProject.id)
                     : baseProject
                 _ = try DevicePatchService.apply(project: project)
                 await MainActor.run {
@@ -609,6 +734,111 @@ private struct PatchProjectDetailView: View {
                 }
             }
         }
+    }
+}
+
+private struct PatchVariantEditorContext: Identifiable {
+    let id = UUID()
+    let index: Int
+    let project: PatchProject?
+}
+
+private struct PatchVariantComposerView: View {
+    @Environment(\.appLanguage) private var language
+    @Environment(\.dismiss) private var dismiss
+    let onCreate: ([PatchProject], String?) -> Void
+
+    @State private var variants: [PatchProject?] = [nil, nil]
+    @State private var password = ""
+    @State private var editor: PatchVariantEditorContext?
+    @State private var validationMessageKey: String?
+
+    private var canCreate: Bool {
+        variants.allSatisfy { $0 != nil }
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    ForEach(variants.indices, id: \.self) { index in
+                        Button {
+                            editor = PatchVariantEditorContext(index: index, project: variants[index])
+                        } label: {
+                            HStack(spacing: 10) {
+                                Image(systemName: variants[index] == nil ? "plus.circle" : "checkmark.circle.fill")
+                                    .foregroundStyle(variants[index] == nil ? Color.secondary : AppTheme.accent)
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text(variants[index]?.name ?? language.text("patch.variant_empty"))
+                                        .foregroundStyle(.primary)
+                                    Text(variants[index]?.allBundleIdentifiers.joined(separator: ", ") ?? language.text("patch.variant_tap_to_edit"))
+                                        .font(.caption.monospaced())
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(2)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(.tertiary)
+                            }
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    Button {
+                        variants.append(nil)
+                    } label: {
+                        Label(language.text("patch.add_variant"), systemImage: "plus.circle.fill")
+                    }
+                } header: {
+                    Text(language.text("patch.variants"))
+                } footer: {
+                    Text(language.text("patch.variant_composer_footer"))
+                }
+
+                Section(language.text("patch.password")) {
+                    SecureField(language.text("patch.password_optional"), text: $password)
+                        .textContentType(.newPassword)
+                }
+
+                if let validationMessageKey {
+                    Section {
+                        Label(language.text(validationMessageKey), systemImage: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.red)
+                    }
+                }
+            }
+            .navigationTitle(language.text("patch.new_variants"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(language.text("common.cancel")) { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(language.text("common.done"), action: create)
+                        .disabled(!canCreate)
+                }
+            }
+            .sheet(item: $editor) { context in
+                PatchProjectEditorView(
+                    existingProject: context.project,
+                    passwordIsProtected: false
+                ) { project, _ in
+                    variants[context.index] = project
+                    editor = nil
+                }
+            }
+        }
+    }
+
+    private func create() {
+        let projects = variants.compactMap { $0 }
+        guard projects.count == variants.count, projects.count >= 2 else {
+            validationMessageKey = "patch.error.invalid_project"
+            return
+        }
+        onCreate(projects, password.isEmpty ? nil : password)
+        dismiss()
     }
 }
 

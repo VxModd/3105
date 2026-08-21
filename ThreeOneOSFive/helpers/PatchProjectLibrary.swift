@@ -2,18 +2,25 @@ import Foundation
 
 struct PatchLibraryItem: Identifiable {
     let summary: PatchPackageSummary
-    var project: PatchProject?
+    var variants: [PatchProject]
     var contentKey: Data?
     var packageURL: URL
 
     var id: UUID { summary.packageID }
-    var isLocked: Bool { project == nil }
+    var project: PatchProject? { variants.first }
+    var isLocked: Bool { variants.isEmpty }
+    var hasVariants: Bool { variants.count > 1 }
     var workspaceURL: URL? {
-        PatchWorkspaceService.workspaceURL(projectID: id)
+        project.flatMap { PatchWorkspaceService.workspaceURL(projectID: $0.id) }
     }
 }
 
 struct PatchPasswordRequest: Identifiable {
+    let summary: PatchPackageSummary
+    var id: UUID { summary.packageID }
+}
+
+struct PatchPasswordChangeRequest: Identifiable {
     let summary: PatchPackageSummary
     var id: UUID { summary.packageID }
 }
@@ -61,15 +68,17 @@ enum PatchProjectLibrary {
                 }
                 let item = PatchLibraryItem(
                     summary: summary,
-                    project: decoded?.project,
+                    variants: decoded?.variants ?? [],
                     contentKey: decoded?.contentKey,
                     packageURL: url
                 )
-                if summary.schemaVersion >= 2, let project = decoded?.project {
-                    do {
-                        _ = try PatchWorkspaceService.ensureWorkspace(for: project)
-                    } catch {
-                        log("patch: workspace unavailable for \(project.id.uuidString)")
+                if summary.schemaVersion >= 2 {
+                    for variant in decoded?.variants ?? [] {
+                        do {
+                            _ = try PatchWorkspaceService.ensureWorkspace(for: variant)
+                        } catch {
+                            log("patch: workspace unavailable for \(variant.id.uuidString)")
+                        }
                     }
                 }
                 byID[summary.packageID] = item
@@ -133,10 +142,12 @@ enum PatchProjectLibrary {
                 fileManager: fileManager
             )
             if summary.schemaVersion >= 2 {
-                _ = try PatchWorkspaceService.replaceWorkspace(
-                    with: decoded.project,
-                    fileManager: fileManager
-                )
+                for variant in decoded.variants {
+                    _ = try PatchWorkspaceService.replaceWorkspace(
+                        with: variant,
+                        fileManager: fileManager
+                    )
+                }
             } else {
                 try? PatchWorkspaceService.deleteWorkspace(
                     projectID: decoded.project.id,
@@ -160,42 +171,66 @@ enum PatchProjectLibrary {
         if fileManager.fileExists(atPath: item.packageURL.path) {
             try fileManager.removeItem(at: item.packageURL)
         }
+        for variant in item.variants {
+            try? PatchWorkspaceService.deleteWorkspace(projectID: variant.id, fileManager: fileManager)
+        }
         try? PatchWorkspaceService.deleteWorkspace(projectID: item.id, fileManager: fileManager)
         try? PatchKeyStore.delete(for: item.summary)
     }
 
+    @discardableResult
     static func synchronizeWorkspace(
         item: PatchLibraryItem,
+        variantID: UUID? = nil,
         fileManager: FileManager = .default
     ) throws -> PatchProject {
         guard item.summary.schemaVersion >= 2,
-              let baseProject = item.project,
               let contentKey = item.contentKey else {
             throw PatchPackageError.invalidProject
         }
-        let workspace = try PatchWorkspaceService.ensureWorkspace(
-            for: baseProject,
-            fileManager: fileManager
-        )
-        let project = try PatchWorkspaceService.snapshot(
-            baseProject: baseProject,
-            workspaceURL: workspace,
-            fileManager: fileManager
-        )
         let original = try readPackage(at: item.packageURL)
-        let updated = try PatchPackageCodec.update(
-            original,
-            project: project,
-            contentKey: contentKey,
-            schemaVersion: PatchPackageCodec.latestSchemaVersion
-        )
+        var updatedVariants = item.variants
+        guard !updatedVariants.isEmpty else { throw PatchPackageError.invalidProject }
+        let selectedID = variantID ?? updatedVariants[0].id
+        let idsToSync: [UUID] = variantID.map { [$0] } ?? updatedVariants.map(\.id)
+        for id in idsToSync {
+            guard let index = updatedVariants.firstIndex(where: { $0.id == id }) else {
+                throw PatchPackageError.invalidProject
+            }
+            let baseProject = updatedVariants[index]
+            let workspace = try PatchWorkspaceService.ensureWorkspace(
+                for: baseProject,
+                fileManager: fileManager
+            )
+            updatedVariants[index] = try PatchWorkspaceService.snapshot(
+                baseProject: baseProject,
+                workspaceURL: workspace,
+                fileManager: fileManager
+            )
+        }
+        let updatedData: Data
+        if item.summary.schemaVersion >= 3 {
+            updatedData = try PatchPackageCodec.update(
+                original,
+                variants: updatedVariants,
+                contentKey: contentKey,
+                schemaVersion: PatchPackageCodec.latestSchemaVersion
+            )
+        } else {
+            updatedData = try PatchPackageCodec.update(
+                original,
+                project: updatedVariants[0],
+                contentKey: contentKey,
+                schemaVersion: 2
+            )
+        }
         _ = try save(
-            data: updated,
-            projectName: project.name,
+            data: updatedData,
+            projectName: updatedVariants[0].name,
             existingURL: item.packageURL,
             fileManager: fileManager
         )
-        return project
+        return updatedVariants.first(where: { $0.id == selectedID }) ?? updatedVariants[0]
     }
 
     private static func sanitizedFilename(_ rawName: String) -> String {

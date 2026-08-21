@@ -1,4 +1,4 @@
-"app.subtitle" = "Trình chỉnh sửa MobileGestalt";
+"app.subtitle" = "Trình quản lý patch Zscript";
 "app.capability_editor" = "Trình chỉnh sửa tính năng MobileGestalt";
 "common.close" = "Đóng";
 "common.done" = "Xong";
@@ -14,12 +14,12 @@
 "common.finish" = "Hoàn thành";
 
 "update.title" = "Có bản cập nhật";
-"update.message" = "3105 %@ đã có trên GitHub.";
+"update.message" = "Zscript %@ đã có trên GitHub.";
 "update.agree" = "Đồng ý";
 "update.dismiss" = "Không hiển thị lại";
 "patch.error.wrong_password" = "Sai mật khẩu.";
 
-"attribution.title" = "Giới thiệu 3105";
+"attribution.title" = "Giới thiệu Zscript";
 "attribution.subtitle" = "Thông tin dự án";
 "attribution.link_section" = "Liên kết dự án";
 "attribution.url" = "URL";
@@ -30,9 +30,9 @@
 "onboarding.language_title" = "Chọn ngôn ngữ";
 "onboarding.language_subtitle" = "Bạn có thể đổi lại trong Cài đặt.";
 "onboarding.language_hint" = "Chọn một ngôn ngữ để tiếp tục.";
-"onboarding.welcome_title" = "Chào Mừng Đến Với 3105";
-"onboarding.welcome_message" = "Ứng dụng được phát triển bởi YangJiii";
-"onboarding.welcome_badge" = "Định danh chính thức 3105";
+"onboarding.welcome_title" = "Chào Mừng Đến Với Zscript";
+"onboarding.welcome_message" = "Trình quản lý patch và trình chỉnh sửa MobileGestalt của Zscript";
+"onboarding.welcome_badge" = "Định danh chính thức Zscript";
 "onboarding.versions_title" = "Phiên bản iOS được hỗ trợ";
 "onboarding.versions_subtitle" = "3105 đã được xác minh trên các khoảng bên dưới. Build ngoài phạm vi sẽ bị chặn.";
 "onboarding.versions_footer" = "Thiết bị này: iOS %@ (%@)";
@@ -70,9 +70,7 @@
 "dashboard.kernel_running" = "Đang kích hoạt…";
 "dashboard.kernel_active" = "Đã hoạt động";
 "dashboard.kernel_inactive" = "Chưa hoạt động";
-"dashboard.enterprise_signing" = "3105 chỉ hoạt động khi được ký bằng chứng chỉ doanh nghiệp. Không hỗ trợ SideStore, AltStore, 3uTools hoặc LiveContainer.";
-"dashboard.features" = "Tính năng";
-"dashboard.features_footer" = "Bật Dọn dẹp hoặc Hình nền để hiển thị tính năng đó trong thanh điều hướng.";
+"dashboard.enterprise_signing" = "Zscript chỉ hoạt động khi được ký bằng chứng chỉ doanh nghiệp. Không hỗ trợ SideStore, AltStore, 3uTools hoặc LiveContainer.";
 "tab.home" = "Trang chủ";
 "tab.files" = "Tệp";
 "tab.patches" = "Patch";
@@ -163,11 +161,18 @@
 "patch.preparing_from_browser" = "Đang chuẩn bị đường dẫn patch…";
 "patch.create_from_browser_failed" = "Không thể tạo patch";
 "patch.password" = "Mật khẩu";
+"patch.change_password" = "Đổi mật khẩu";
+"patch.set_password" = "Đặt mật khẩu";
+"patch.new_password" = "Mật khẩu mới";
+"patch.confirm_password" = "Xác nhận mật khẩu";
+"patch.password_mismatch" = "Mật khẩu không khớp.";
+"patch.password_recovery_warning" = "Nếu quên mật khẩu, gói này không thể khôi phục.";
+"patch.unlocked" = "Đã mở khóa";
 "patch.password_optional" = "Mật khẩu không bắt buộc";
-"patch.password_locked" = "Đã đặt cố định";
+"patch.password_locked" = "Được bảo vệ bằng mật khẩu";
 "patch.no_password" = "Không có mật khẩu";
-"patch.password_immutable_footer" = "Không bắt buộc. Sau khi tạo dự án, mật khẩu không thể thay đổi.";
-"patch.password_existing_footer" = "Thiết lập này không thể thay đổi sau khi tạo.";
+"patch.password_immutable_footer" = "Không bắt buộc. Bạn có thể đổi mật khẩu sau trong chi tiết gói.";
+"patch.password_existing_footer" = "Dùng Đổi mật khẩu trong chi tiết gói để xoay khóa bảo vệ.";
 "patch.password_once_message" = "Sau khi mở khóa thành công, thiết bị này chỉ nhớ khóa nội dung, không lưu mật khẩu.";
 "patch.unlock" = "Mở khóa";
 "patch.apply" = "Áp dụng patch";
@@ -177,9 +182,10 @@
 "patch.apply_confirm_message" = "Mọi bundle identifier và đường dẫn tương đối sẽ được kiểm tra lại. File gốc được sao lưu trước lần ghi đầu tiên.";
 "patch.restore_confirm_title" = "Khôi phục các file gốc?";
 "patch.created_message" = "Đã tạo dự án patch.";
+"patch.password_changed_message" = "Đã đổi mật khẩu gói và xoay khóa mã hóa.";
 "patch.updated_message" = "Đã cập nhật dự án mà không thay đổi mật khẩu.";
 "patch.imported_message" = "Đã nhập gói .3105.";
-"patch.unlocked_message" = "Đã mở khóa. Thiết bị này sẽ không hỏi lại mật khẩu của gói này.";
+"patch.unlocked_message" = "Đã mở khóa. Thiết bị chỉ nhớ khóa nội dung, không lưu mật khẩu.";
 "patch.workspace_synced_message" = "Đã đồng bộ workspace của patch.";
 "patch.applied_message" = "Đã áp dụng mọi quy tắc và sao lưu các file gốc.";
 "patch.restored_message" = "Đã khôi phục các file gốc.";
@@ -242,17 +248,10 @@
 "settings.sandbox_token" = "Token sandbox";
 "settings.generate_token" = "Tạo token";
 "settings.token_footer" = "Khả dụng sau khi exploit cấp quyền thành công.";
+"settings.social_media" = "Mạng xã hội";
+"social.arelos_role" = "Hồ sơ TikTok";
+"social.zscript_role" = "Hồ sơ TikTok chính thức";
 "settings.credits" = "Ghi công";
-"settings.social_media" = "Mạng Xã Hội";
-"social.github_role" = "Mã nguồn 3105";
-"social.iosvn_role" = "Cộng Đồng IOSVN";
-"credit.yangjiii" = "Nhà phát triển & thiết kế";
-"credit.forcequit" = "Khai thác bad_query";
-"credit.filzaslop" = "FilzaSlop — MHA-C2 và dò dữ liệu ứng dụng";
-"credit.pocket_poster" = "Pocket Poster, Nugget và định dạng .tendies";
-"credit.sandbox_escape" = "Nền tảng sandbox escape của FilzaSlop";
-"credit.opa" = "Dopamine jailbreak, nền tảng kexploit";
-"credit.seo" = "Bản chuyển kexploit_opa334";
 
 "gestalt.title" = "Trình chỉnh sửa Gestalt";
 "gestalt.apply_changes" = "Áp dụng thay đổi";
@@ -511,3 +510,43 @@
 "wallpaper.error.install" = "Cài đặt thất bại và mọi descriptor đã thêm trong lần thử này đã được rollback.";
 "wallpaper.error.restore" = "3105 không thể xóa an toàn toàn bộ descriptor của lần cài này.";
 "wallpaper.error.unknown" = "Đã xảy ra lỗi không mong muốn. Hãy kiểm tra Nhật ký phiên để biết chi tiết.";
+
+"patch.variants" = "Các biến thể";
+"patch.variant" = "Biến thể";
+"patch.variants_count" = "%lld biến thể có thể chọn";
+"patch.variant_footer" = "Chỉ biến thể được chọn mới được áp dụng. Các biến thể khác không thay đổi.";
+"patch.new_variants" = "Tạo gói biến thể mới";
+"patch.add_variant" = "Thêm biến thể";
+"patch.variant_empty" = "Biến thể trống — chạm để cấu hình";
+"patch.variant_tap_to_edit" = "Chạm để đặt tên và quy tắc";
+"patch.variant_composer_footer" = "Tạo ít nhất hai biến thể. Khi áp dụng, 3105 chỉ ghi biến thể được chọn.";
+
+"patch.login_subtitle" = "Đăng nhập để tiếp tục vào Patches.";
+"patch.login_username" = "Tên người dùng";
+"patch.login_password" = "Mật khẩu";
+"patch.login_button" = "Tiếp tục";
+"patch.login_invalid" = "Thông tin đăng nhập không đúng.";
+
+"tab.exploits" = "Exploits";
+"exploits.header" = "Exploits";
+"exploits.subtitle" = "Công cụ tích hợp cho các mục tiêu đã cài đặt.";
+"exploits.info" = "Thông tin";
+"exploits.target" = "Mục tiêu";
+"exploits.logs" = "Nhật ký";
+"exploits.settings" = "Cài đặt";
+"exploits.cache_res_title" = "AIM Assist";
+"exploits.cache_res_description" = "Thay thế tài nguyên cache_res của Free Fire bằng tệp đã tích hợp.";
+"exploits.cache_res_target" = "Free Fire · com.dts.freefireth";
+"exploits.inject" = "Inject";
+"exploits.restore" = "Khôi phục";
+"exploits.status_ready" = "status: sẵn sàng";
+"exploits.status_working" = "status: đang chạy";
+"exploits.status_success" = "status: thành công";
+"exploits.status_error" = "status: lỗi";
+
+"exploits.brandline" = "BỘ CÔNG CỤ EXPLOIT";
+"exploits.available" = "SẴN SÀNG";
+"exploits.active_target" = "Mục tiêu hiện tại";
+"exploits.status_label" = "Trạng thái";
+"exploits.info_footer" = "Thông tin thiết bị và phiên";
+"exploits.patch_asset" = "Tài nguyên bản vá tích hợp";

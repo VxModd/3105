@@ -14,7 +14,7 @@ struct SettingsView: View {
                         AppLogo()
 
                         VStack(alignment: .leading, spacing: 3) {
-                            Text("3105").font(.headline)
+                            Text("Zscript").font(.headline)
                             Text(language.text("common.version", appVersion))
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
@@ -43,7 +43,7 @@ struct SettingsView: View {
                         Text(language.text("settings.current_version"))
                         Spacer()
                         Text(language.text(appState.isSupported ? "settings.supported" : "settings.unsupported"))
-                        .foregroundStyle(appState.isSupported ? Color.green : Color.red)
+                            .foregroundStyle(appState.isSupported ? Color.green : Color.red)
                     }
                     LabeledContent("iOS 17", value: ExploitSupportPolicy.verifiedIOS17Range)
                     LabeledContent("iOS 18", value: ExploitSupportPolicy.verifiedIOS18Range)
@@ -53,8 +53,8 @@ struct SettingsView: View {
                             .font(.body)
                         ForEach(ExploitSupportPolicy.verifiedIOS27Builds, id: \.build) { version in
                             Text(versionLabel(version))
-                            .font(.caption.monospaced())
-                            .foregroundStyle(.secondary)
+                                .font(.caption.monospaced())
+                                .foregroundStyle(.secondary)
                         }
                     }
                     .padding(.vertical, 2)
@@ -66,42 +66,27 @@ struct SettingsView: View {
 
                 Section(language.text("settings.social_media")) {
                     creditsRow(
-                        name: "GitHub",
-                        role: language.text("social.github_role"),
-                        url: "https://github.com/YangJiiii/3105"
+                        name: "Árelos",
+                        role: language.text("social.arelos_role"),
+                        url: "https://www.tiktok.com/@emanuel.malfa?_r=1&_t=ZS-993GC4hqAM9"
                     )
                     creditsRow(
-                        name: "Cộng Đồng IOSVN",
-                        role: language.text("social.iosvn_role"),
-                        url: "https://t.me/ioscrackvn"
+                        name: "ZScript",
+                        role: language.text("social.zscript_role"),
+                        url: "https://www.tiktok.com/@zscriptteam?_r=1&_t=ZS-993GLRxlWtg"
                     )
                 }
 
                 Section(language.text("settings.credits")) {
                     creditsRow(
-                        name: "YangJiii",
-                        role: language.text("credit.yangjiii"),
-                        url: "https://x.com/duongduong0908"
+                        name: "JJosseDev",
+                        role: "Exploit developer and app designer",
+                        url: "https://t.me/JJosseDev"
                     )
                     creditsRow(
-                        name: "0xjohnnydev",
-                        role: language.text("credit.filzaslop"),
-                        url: "https://github.com/0xjohnnydev/FilzaSlop"
-                    )
-                    creditsRow(
-                        name: "LeminLimez",
-                        role: language.text("credit.pocket_poster"),
-                        url: "https://github.com/leminlimez/Pocket-Poster"
-                    )
-                    creditsRow(
-                        name: "CrazyMind90",
-                        role: language.text("credit.sandbox_escape"),
-                        url: "https://github.com/CrazyMind90"
-                    )
-                    creditsRow(
-                        name: "forcequitOS",
-                        role: language.text("credit.forcequit"),
-                        url: "https://github.com/forcequitOS"
+                        name: "Árelos",
+                        role: "Exploit assets and code",
+                        url: "https://t.me/Arelos_1"
                     )
                 }
             }

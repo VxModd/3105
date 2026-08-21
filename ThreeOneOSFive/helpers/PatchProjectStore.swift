@@ -25,8 +25,10 @@ final class PatchProjectStore: ObservableObject {
     @Published private(set) var items: [PatchLibraryItem] = []
     @Published private(set) var isBusy = false
     @Published var passwordRequest: PatchPasswordRequest?
+    @Published var passwordChangeRequest: PatchPasswordChangeRequest?
     @Published var alert: PatchStoreAlert?
     @Published var unlockErrorKey: String?
+    @Published var passwordChangeErrorKey: String?
 
     private struct PendingUnlock {
         let data: Data
@@ -34,7 +36,16 @@ final class PatchProjectStore: ObservableObject {
         let existingURL: URL?
     }
 
+    private struct PendingPasswordChange {
+        let data: Data
+        let summary: PatchPackageSummary
+        let contentKey: Data
+        let existingURL: URL
+        let projectName: String
+    }
+
     private var pendingUnlock: PendingUnlock?
+    private var pendingPasswordChange: PendingPasswordChange?
 
     init() {
         reload()
@@ -62,8 +73,35 @@ final class PatchProjectStore: ObservableObject {
         }
     }
 
-    func update(project: PatchProject) {
-        guard let item = items.first(where: { $0.id == project.id }),
+    func create(variants: [PatchProject], password: String?) {
+        guard variants.count >= 2 else {
+            present(.invalidProject)
+            return
+        }
+        runOperation(successMessageKey: "patch.created_message") {
+            let encoded = try PatchPackageCodec.encodeNew(variants: variants, password: password)
+            let summary = try PatchPackageCodec.inspect(encoded.data)
+            var workspaces: [URL] = []
+            do {
+                for variant in variants {
+                    workspaces.append(try PatchWorkspaceService.createWorkspace(for: variant))
+                }
+                if summary.isPasswordProtected {
+                    try PatchKeyStore.store(encoded.contentKey, for: summary)
+                }
+                _ = try PatchProjectLibrary.save(data: encoded.data, projectName: variants[0].name)
+            } catch {
+                for workspace in workspaces {
+                    try? FileManager.default.removeItem(at: workspace)
+                }
+                try? PatchKeyStore.delete(for: summary)
+                throw error
+            }
+        }
+    }
+
+    func update(project: PatchProject, packageID: UUID? = nil) {
+        guard let item = items.first(where: { $0.id == (packageID ?? project.id) }),
               let contentKey = item.contentKey else {
             present(.invalidProject)
             return
@@ -214,6 +252,77 @@ final class PatchProjectStore: ObservableObject {
         isBusy = false
     }
 
+    func requestPasswordChange(for item: PatchLibraryItem) {
+        guard !item.isLocked,
+              let contentKey = item.contentKey,
+              !isBusy else {
+            present(.invalidProject)
+            return
+        }
+        do {
+            let data = try PatchProjectLibrary.readPackage(at: item.packageURL)
+            pendingPasswordChange = PendingPasswordChange(
+                data: data,
+                summary: item.summary,
+                contentKey: contentKey,
+                existingURL: item.packageURL,
+                projectName: item.project?.name ?? "Patch"
+            )
+            passwordChangeRequest = PatchPasswordChangeRequest(summary: item.summary)
+        } catch let error as PatchPackageError {
+            present(error)
+        } catch {
+            present(.unsupportedFormat)
+        }
+    }
+
+    func changePassword(newPassword: String) {
+        guard let pending = pendingPasswordChange, !isBusy else { return }
+        guard !newPassword.isEmpty else {
+            present(.invalidProject)
+            return
+        }
+        isBusy = true
+        passwordChangeErrorKey = nil
+        Task.detached(priority: .userInitiated) { [weak self] in
+            do {
+                let encoded = try PatchPackageCodec.changePassword(
+                    pending.data,
+                    contentKey: pending.contentKey,
+                    newPassword: newPassword
+                )
+                let newSummary = try PatchPackageCodec.inspect(encoded.data)
+                try PatchKeyStore.store(encoded.contentKey, for: newSummary)
+                do {
+                    _ = try PatchProjectLibrary.save(
+                        data: encoded.data,
+                        projectName: pending.projectName,
+                        existingURL: pending.existingURL
+                    )
+                } catch {
+                    try? PatchKeyStore.delete(for: newSummary)
+                    throw error
+                }
+                try? PatchKeyStore.delete(for: pending.summary)
+                await self?.clearPendingPasswordChange()
+                await self?.finishOperation(successMessageKey: "patch.password_changed_message")
+            } catch let error as PatchPackageError {
+                await self?.failPasswordChange(error)
+            } catch {
+                await self?.failPasswordChange(.invalidProject)
+            }
+        }
+    }
+
+    func cancelPasswordChange() {
+        clearPendingPasswordChange()
+        isBusy = false
+    }
+
+    func clearPasswordChangeError() {
+        passwordChangeErrorKey = nil
+    }
+
     func clearUnlockError() {
         unlockErrorKey = nil
     }
@@ -227,14 +336,18 @@ final class PatchProjectStore: ObservableObject {
         }
     }
 
-    func synchronizeWorkspace(projectID: UUID, reportsSuccess: Bool = false) {
+    func synchronizeWorkspace(
+        projectID: UUID,
+        variantID: UUID? = nil,
+        reportsSuccess: Bool = false
+    ) {
         guard let item = items.first(where: { $0.id == projectID }),
               item.summary.schemaVersion >= 2,
               !isBusy else { return }
         isBusy = true
         Task.detached(priority: .userInitiated) { [weak self] in
             do {
-                _ = try PatchProjectLibrary.synchronizeWorkspace(item: item)
+                _ = try PatchProjectLibrary.synchronizeWorkspace(item: item, variantID: variantID)
                 await self?.finishWorkspaceSynchronization(reportsSuccess: reportsSuccess)
             } catch let error as PatchPackageError {
                 await self?.failOperation(error)
@@ -315,6 +428,17 @@ final class PatchProjectStore: ObservableObject {
         pendingUnlock = nil
         passwordRequest = nil
         unlockErrorKey = nil
+    }
+
+    private func clearPendingPasswordChange() {
+        pendingPasswordChange = nil
+        passwordChangeRequest = nil
+        passwordChangeErrorKey = nil
+    }
+
+    private func failPasswordChange(_ error: PatchPackageError) {
+        isBusy = false
+        passwordChangeErrorKey = error.localizationKey
     }
 
     private func finishOperation(successMessageKey: String) {

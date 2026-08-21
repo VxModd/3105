@@ -2,57 +2,12 @@ import Foundation
 
 enum AppSection: Int, CaseIterable, Identifiable {
     case home
-    case files
     case patches
-    case cleaner
-    case wallpapers
+
+    // Home remains as an internal compatibility case, but Exploits is the only public section.
+    static var allCases: [AppSection] { [.patches] }
 
     var id: Int { rawValue }
-}
-
-enum WallpaperFeatureSupportPolicy {
-    static func isSupported(major: Int) -> Bool {
-        switch major {
-        case 17, 18, 26, 27:
-            return true
-        default:
-            return false
-        }
-    }
-}
-
-struct FeatureVisibility: Equatable {
-    static let cleanerStorageKey = "feature.cleaner.enabled"
-    static let wallpapersStorageKey = "feature.wallpapers.enabled"
-
-    let cleanerEnabled: Bool
-    let wallpapersEnabled: Bool
-    let wallpapersSupported: Bool
-
-    init(
-        cleanerEnabled: Bool,
-        wallpapersEnabled: Bool,
-        wallpapersSupported: Bool = true
-    ) {
-        self.cleanerEnabled = cleanerEnabled
-        self.wallpapersEnabled = wallpapersEnabled
-        self.wallpapersSupported = wallpapersSupported
-    }
-
-    var visibleSections: [AppSection] {
-        AppSection.allCases.filter(isVisible)
-    }
-
-    func isVisible(_ section: AppSection) -> Bool {
-        switch section {
-        case .cleaner:
-            return cleanerEnabled
-        case .wallpapers:
-            return wallpapersEnabled && wallpapersSupported
-        case .home, .files, .patches:
-            return true
-        }
-    }
 }
 
 struct AppTabNavigationState: Equatable {
@@ -60,7 +15,7 @@ struct AppTabNavigationState: Equatable {
     private(set) var filesTabs: FilesTabSession
 
     init(
-        selectedTab: Int = 0,
+        selectedTab: Int = AppSection.patches.rawValue,
         filesNavigationPath: [FileBrowserDestination] = []
     ) {
         self.selectedTab = selectedTab
@@ -70,6 +25,10 @@ struct AppTabNavigationState: Equatable {
     }
 
     mutating func select(_ tab: Int) {
+        guard AppSection.allCases.contains(where: { $0.rawValue == tab }) else {
+            selectedTab = AppSection.patches.rawValue
+            return
+        }
         selectedTab = tab
     }
 
@@ -85,15 +44,16 @@ struct AppTabNavigationState: Equatable {
         filesTabs = session
     }
 
-    mutating func reconcileSelection(with visibility: FeatureVisibility) {
-        guard let selectedSection = AppSection(rawValue: selectedTab),
-              visibility.isVisible(selectedSection) else {
-            selectedTab = AppSection.home.rawValue
+    mutating func reconcileSelection() {
+        guard AppSection.allCases.contains(where: { $0.rawValue == selectedTab }) else {
+            selectedTab = AppSection.patches.rawValue
             return
         }
     }
 }
 
+// Retained as internal compatibility types for the file-browser implementation.
+// The Files tab is no longer exposed through the main navigation.
 struct FileBrowserDestination: Hashable {
     let containerPath: String
     let startPath: String

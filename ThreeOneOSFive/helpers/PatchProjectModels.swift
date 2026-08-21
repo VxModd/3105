@@ -130,8 +130,11 @@ struct EncodedPatchPackage {
 }
 
 struct DecodedPatchPackage {
-    let project: PatchProject
+    let variants: [PatchProject]
     let contentKey: Data
+
+    // Compatibility accessor for legacy callers and single-project packages.
+    var project: PatchProject { variants[0] }
 }
 
 enum PatchPackageError: Error, Equatable {
