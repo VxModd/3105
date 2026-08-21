@@ -831,9 +831,9 @@ private struct ExploitsView: View {
                         .fill(Color.white.opacity(0.09))
                         .frame(height: 1)
                         .padding(.vertical, 14)
-                    nodeRow(label: language.text("exploits.device_node"), value: AppInfo.displayMachineName, systemImage: "iphone")
-                    nodeRow(label: language.text("exploits.runtime"), value: "iOS \(AppInfo.osVersion)", systemImage: "cpu")
-                    nodeRow(label: language.text("exploits.secure"), value: language.text("exploits.target_locked"), systemImage: "checkmark.shield.fill", tint: .green)
+                    nodeRow(title: language.text("exploits.device_node"), value: AppInfo.displayMachineName, systemImage: "iphone")
+                    nodeRow(title: language.text("exploits.runtime"), value: "iOS \(AppInfo.osVersion)", systemImage: "cpu")
+                    nodeRow(title: language.text("exploits.secure"), value: language.text("exploits.target_locked"), systemImage: "checkmark.shield.fill", tint: .green)
 
                     HStack(spacing: 10) {
                         nodeAction(title: language.text("exploits.logs"), systemImage: "terminal.fill") {
