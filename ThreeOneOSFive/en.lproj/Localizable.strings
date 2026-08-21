@@ -550,3 +550,4 @@
 "exploits.status_label" = "Status";
 "exploits.info_footer" = "Device and session details";
 "exploits.patch_asset" = "Bundled patch asset";
+"exploits.variant_label" = "Variant";

@@ -401,7 +401,7 @@ private enum BundledExploitCatalog {
         systemImage: "arrow.triangle.2.circlepath"
     )
 
-    static func loadProject(for definition: BundledExploitDefinition) throws -> PatchProject {
+    static func loadVariants(for definition: BundledExploitDefinition) throws -> [PatchProject] {
         guard let url = Bundle.main.url(
             forResource: definition.resourceName,
             withExtension: definition.fileExtension
@@ -409,7 +409,7 @@ private enum BundledExploitCatalog {
             throw PatchPackageError.invalidProject
         }
         let data = try Data(contentsOf: url, options: .mappedIfSafe)
-        return try PatchPackageCodec.decode(data, password: nil).project
+        return try PatchPackageCodec.decode(data, password: nil).variants
     }
 }
 
@@ -443,10 +443,15 @@ private struct ExploitsView: View {
     @State private var showInfo = true
     @State private var showSettings = false
     @State private var showLogs = false
-    @State private var bundledProject: PatchProject?
+    @State private var variants: [PatchProject] = []
+    @State private var selectedVariantID: UUID?
     @State private var status: ExploitCardStatus = .ready
     @State private var isWorking = false
     @State private var hasReceipt = false
+
+    private var selectedProject: PatchProject? {
+        variants.first { $0.id == selectedVariantID }
+    }
 
     private let definition = BundledExploitCatalog.cacheRes
 
@@ -614,6 +619,33 @@ private struct ExploitsView: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(language.text(definition.titleKey))
                         .font(.title3.weight(.bold))
+                    
+                    if variants.count > 1 {
+                        Menu {
+                            ForEach(variants) { variant in
+                                Button {
+                                    selectedVariantID = variant.id
+                                    hasReceipt = DevicePatchService.latestReceipt(projectID: variant.id) != nil
+                                } label: {
+                                    HStack {
+                                        Text(variant.name)
+                                        if selectedVariantID == variant.id {
+                                            Image(systemName: "checkmark")
+                                        }
+                                    }
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Text(selectedProject?.name ?? "...")
+                                    .font(.subheadline.weight(.medium))
+                                Image(systemName: "chevron.down")
+                                    .font(.system(size: 10, weight: .bold))
+                            }
+                            .foregroundStyle(AppTheme.accent)
+                            .padding(.vertical, 2)
+                        }
+                    }
                 }
                 Spacer(minLength: 8)
                 statusBadge
@@ -664,8 +696,8 @@ private struct ExploitsView: View {
                     in: RoundedRectangle(cornerRadius: 15, style: .continuous)
                 )
                 .shadow(color: AppTheme.accent.opacity(0.22), radius: 10, y: 5)
-                .disabled(isWorking || bundledProject == nil)
-                .opacity(isWorking || bundledProject == nil ? 0.55 : 1)
+                .disabled(isWorking || selectedProject == nil)
+                .opacity(isWorking || selectedProject == nil ? 0.55 : 1)
 
                 if hasReceipt {
                     Button(action: restore) {
@@ -786,18 +818,21 @@ private struct ExploitsView: View {
     }
 
     private func loadBundledProject() {
-        guard bundledProject == nil else { return }
+        guard variants.isEmpty else { return }
         do {
-            let project = try BundledExploitCatalog.loadProject(for: definition)
-            bundledProject = project
-            hasReceipt = DevicePatchService.latestReceipt(projectID: project.id) != nil
+            let loadedVariants = try BundledExploitCatalog.loadVariants(for: definition)
+            variants = loadedVariants
+            if let first = loadedVariants.first {
+                selectedVariantID = first.id
+                hasReceipt = DevicePatchService.latestReceipt(projectID: first.id) != nil
+            }
         } catch {
             status = .error
         }
     }
 
     private func inject() {
-        guard let project = bundledProject, !isWorking else { return }
+        guard let project = selectedProject, !isWorking else { return }
         isWorking = true
         status = .working
         Task.detached(priority: .userInitiated) {
@@ -818,7 +853,7 @@ private struct ExploitsView: View {
     }
 
     private func restore() {
-        guard let project = bundledProject,
+        guard let project = selectedProject,
               let receipt = DevicePatchService.latestReceipt(projectID: project.id),
               !isWorking else { return }
         isWorking = true

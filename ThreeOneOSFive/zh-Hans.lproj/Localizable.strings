@@ -550,3 +550,4 @@
 "exploits.status_label" = "状态";
 "exploits.info_footer" = "设备与会话详情";
 "exploits.patch_asset" = "内置补丁资源";
+"exploits.variant_label" = "变体";

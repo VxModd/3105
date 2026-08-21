@@ -550,3 +550,4 @@
 "exploits.status_label" = "Trạng thái";
 "exploits.info_footer" = "Thông tin thiết bị và phiên";
 "exploits.patch_asset" = "Tài nguyên bản vá tích hợp";
+"exploits.variant_label" = "Biến thể";
